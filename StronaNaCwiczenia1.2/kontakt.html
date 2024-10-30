@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Kontakt</title>
+    <style>
+        /* Dotychczasowy styl strony */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        nav ul li {
+            float: left;
+        }
+
+        nav ul li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+
+        nav ul li a:hover {
+            background-color: #111;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        .contact-form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .contact-form label {
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .contact-form input[type="text"],
+        .contact-form input[type="email"],
+        .contact-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .contact-form input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .contact-form input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        /* Styl zegarka i daty */
+        #zegarek, #data {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            color: #333;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        #data {
+            top: 60px; /* Przesunięcie daty poniżej zegara */
+            font-size: 18px;
+            color: #666;
+        }
+
+        /* Styl dla przycisków zmiany koloru */
+        .color-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .color-buttons button {
+            margin-bottom: 5px;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .color-buttons button:hover {
+            opacity: 0.9;
+        }
+
+        .yellow { background-color: #FFFF00; color: #333; }
+        .black { background-color: #000000; }
+        .white { background-color: #FFFFFF; color: #333; border: 1px solid #ccc; }
+        .green { background-color: #00FF00; color: #333; }
+        .blue { background-color: #0000FF; }
+        .orange { background-color: #FF8800; }
+        .gray { background-color: #C0C0C0; color: #333; }
+        .red { background-color: #FF0000; }
+    </style>
+    <!-- Dołączanie plików JavaScript -->
+    <script src="timedate.js" type="text/javascript"></script>
+    <script src="kolortlo.js" type="text/javascript"></script>
+</head>
+<body onload="startclock()">
+    <nav>
+        <ul>
+            <li><a href="stronaGlowna.html">Strona Główna</a></li>
+            <li><a href="historia.html">Historia</a></li>
+            <li><a href="popmar.html">Marki</a></li>
+            <li><a href="motorsport.html">Motorsport</a></li>
+            <li><a href="samelek.html">Samochody Elektryczne</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+        </ul>
+    </nav>
+
+    <div id="zegarek"></div>
+    <div id="data"></div>
+
+    <div class="contact-form">
+        <h1>Kontakt</h1>
+        <form action="mailto:twojemail@example.com" method="get" enctype="text/plain" onsubmit="return prepareMailto(this)">
+            <label for="name">Imię:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="message">Wiadomość:</label>
+            <textarea id="message" name="message" rows="5"></textarea>
+
+            <input type="submit" value="Wyślij">
+        </form>
+    </div>
+
+    <!-- Przyciski zmiany koloru tła -->
+    <div class="color-buttons">
+        <button class="yellow" onclick="changeBackground('#FFFF00')">Żółty</button>
+        <button class="black" onclick="changeBackground('#000000')">Czarny</button>
+        <button class="white" onclick="changeBackground('#FFFFFF')">Biały</button>
+        <button class="green" onclick="changeBackground('#00FF00')">Zielony</button>
+        <button class="blue" onclick="changeBackground('#0000FF')">Niebieski</button>
+        <button class="orange" onclick="changeBackground('#FF8800')">Pomarańczowy</button>
+        <button class="gray" onclick="changeBackground('#C0C0C0')">Szary</button>
+        <button class="red" onclick="changeBackground('#FF0000')">Czerwony</button>
+    </div>
+
+    <script>
+        function prepareMailto(form) {
+            const name = encodeURIComponent(form.name.value);
+            const email = encodeURIComponent(form.email.value);
+            const message = encodeURIComponent(form.message.value);
+            const subject = encodeURIComponent("Wiadomość z formularza kontaktowego");
+
+            const mailtoLink = `mailto:twojemail@example.com?subject=${subject}&body=Imię: ${name}%0AEmail: ${email}%0AWiadomość: ${message}`;
+            
+            window.location.href = mailtoLink;
+            return false; 
+        }
+    </script>
+</body>
+</html>
