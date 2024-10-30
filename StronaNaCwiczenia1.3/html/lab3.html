@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Przykład animacji powiększenia po kliknięciu i najechaniu</title>
+    <link rel="stylesheet" href="/css/stylecwiczenie3.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+
+    <!-- Nawigacja -->
+    <nav>
+        <ul>
+            <li><a href="/stronaGlowna.html">Strona Główna</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+            <li><a href="historia.html">Historia japońskich samochodów</a></li>
+            <li><a href="popmar.html">Najpopularniejsze marki</a></li>
+            <li><a href="motorsport.html">Motorsport i tuning</a></li>
+            <li><a href="samelek.html">Samochody elektryczne i hybrydowe</a></li>
+            <li><a href="lab3.html">Lab 3</a></li>
+        </ul>
+    </nav>
+
+    <!-- Elementy z animacjami -->
+    <div id="animacjaTestowa" class="test-block">Kliknij, a się powiększę</div>
+    <div id="animacjaTestowa2" class="test-block">Najedź kursorem, a się powiększę</div>
+    <div id="animacjaTestowa3" class="test-block">Klikaj, abym urósł</div>
+
+    <script>
+        // Animacja powiększenia po kliknięciu
+        $(document).ready(function() {
+            $("#animacjaTestowa").on("click", function() {
+                $(this).animate({
+                    width: "500px",
+                    opacity: 0.4,
+                    fontSize: "3em",
+                    borderWidth: "10px"
+                }, 1500);
+            });
+        });
+
+        // Animacja powiększenia po najechaniu kursorem
+        $(document).ready(function() {
+            $("#animacjaTestowa2").on({
+                mouseover: function() {
+                    $(this).animate({
+                        width: "300px"
+                    }, 800);
+                },
+                mouseout: function() {
+                    $(this).animate({
+                        width: "200px"
+                    }, 800);
+                }
+            });
+        });
+
+        // Animacja powiększenia z każdym kliknięciem
+        $(document).ready(function() {
+            $("#animacjaTestowa3").on("click", function() {
+                if (!$(this).is(":animated")) {
+                    $(this).animate({
+                        width: "+=50",
+                        height: "+=10",
+                        opacity: "-=0.1"
+                    }, {
+                        duration: 3000 // Czas trwania animacji
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
