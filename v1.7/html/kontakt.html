@@ -1,0 +1,32 @@
+<div class="kontakt-container">
+    <h1 class="kontakt-title">Kontakt</h1>
+    <form class="kontakt-form">
+        <label for="name">Imię:</label>
+        <input type="text" id="name" name="name" class="kontakt-input" placeholder="Wpisz swoje imię" required>
+
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" class="kontakt-input" placeholder="Wpisz swój e-mail" required>
+
+        <label for="message">Wiadomość:</label>
+        <textarea id="message" name="message" class="kontakt-textarea" rows="5" placeholder="Wpisz swoją wiadomość" required></textarea>
+
+        <button type="submit" class="kontakt-button">Wyślij</button>
+    </form>
+</div>
+
+<!-- Sidebar for Color Picker and Clock -->
+<div class="sidebar">
+    <div class="color-buttons">
+        <h3>Wybierz Kolor Tła:</h3>
+        <button class="color-button" style="background-color: #ff0000;" onclick="changeBackground('#ff0000')">Czerwony</button>
+        <button class="color-button" style="background-color: #00ff00;" onclick="changeBackground('#00ff00')">Zielony</button>
+        <button class="color-button" style="background-color: #0000ff;" onclick="changeBackground('#0000ff')">Niebieski</button>
+        <button class="color-button" style="background-color: #f4f4f4;" onclick="changeBackground('#f4f4f4')">Domyślny</button>
+    </div>
+    <div class="clock">
+        <h3>Aktualny Czas:</h3>
+        <div id="zegarek"></div> <!-- Clock display -->
+        <h3>Aktualna Data:</h3>
+        <div id="data"></div> <!-- Date display -->
+    </div>
+</div>
