@@ -1,0 +1,187 @@
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+/* Nawigacja */
+nav {
+    background-color: #343a40;
+    padding: 10px 0;
+}
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+nav ul li {
+    margin: 0 15px;
+}
+nav ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    padding: 8px 15px;
+    transition: background-color 0.3s;
+}
+nav ul li a:hover {
+    background-color: #495057;
+    border-radius: 5px;
+}
+
+/* Nagłówki */
+h1, h2, h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+/* Obrazek nagłówkowy */
+.header-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-bottom: 4px solid #ddd;
+}
+
+/* Sekcje główne */
+main {
+    padding: 40px 15px;
+}
+
+/* Tabela */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+table th {
+    background-color: #007bff;
+    color: white;
+}
+table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+.brand-logo {
+    max-width: 200px;  /* Maksymalna szerokość obrazka */
+    height: auto;      /* Dostosowanie wysokości proporcjonalnie */
+    margin: 10px auto; /* Środek obrazka wewnątrz sekcji */
+    display: block;    /* Wyświetlenie jako blok dla centrowania */
+    object-fit: contain; /* Utrzymanie proporcji bez przycinania */
+}
+
+/* Formularz kontaktowy */
+.contact-form {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.contact-form label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+}
+.contact-form input, .contact-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.contact-form input[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.contact-form input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Przycisk zmiany koloru */
+
+
+/* Styl sekcji */
+.content-section {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.text-image-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.text-content {
+    flex: 1;
+}
+.content-image {
+    width: 50%;
+    border-radius: 10px;
+}
+
+/* Styl animacji */
+.test-block {
+    margin: 20px auto;
+    padding: 20px;
+    width: 200px;
+    text-align: center;
+    background-color: #007bff;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+.test-block:hover {
+    transform: scale(1.1);
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .text-image-container {
+        flex-direction: column;
+    }
+    .content-image {
+        width: 100%;
+    }
+}
+/* Przycisk zmiany koloru */
+.color-buttons {
+    display: flex;  /* Wyświetlenie przycisków jako elastyczna linia */
+    justify-content: center;  /* Centrowanie przycisków */
+    gap: 10px;  /* Odstęp między przyciskami */
+    margin-top: 20px;
+}
+
+.color-buttons button {
+    display: inline-block;  /* Upewnienie się, że przyciski są widoczne */
+    background-color: #007bff;  /* Domyślny kolor przycisku */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.color-buttons button:hover {
+    background-color: #0056b3;  /* Zmiana koloru po najechaniu kursorem */
+}

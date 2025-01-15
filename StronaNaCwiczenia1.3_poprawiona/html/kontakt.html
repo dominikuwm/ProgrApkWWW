@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Kontakt</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<img src="/obrazki/obrazek8.jpg" alt="Japońskie samochody" class="header-image">
+<body onload="startclock()">
+    <nav>
+        <ul>
+            <li><a href="/stronaGlowna.html">Strona Główna</a></li>
+            <li><a href="kontakt.html" class="active">Kontakt</a></li>
+            <li><a href="historia.html">Historia japońskich samochodów</a></li>
+            <li><a href="popmar.html">Najpopularniejsze marki</a></li>
+            <li><a href="motorsport.html">Motorsport i tuning</a></li>
+            <li><a href="samelek.html">Samochody elektryczne i hybrydowe</a></li>
+            <li><a href="lab3.html">Lab 3</a></li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <div id="zegarek"></div>
+        <div id="data"></div>
+
+        <div class="contact-form">
+            <h1>Kontakt</h1>
+            <form action="mailto:twojemail@example.com" method="get" enctype="text/plain" onsubmit="return prepareMailto(this)">
+                <label for="name">Imię:</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="email">E-mail:</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="message">Wiadomość:</label>
+                <textarea id="message" name="message" rows="5"></textarea>
+
+                <input type="submit" value="Wyślij">
+            </form>
+        </div>
+
+        <div class="color-buttons">
+            <button class="yellow" onclick="changeBackground('#FFFF00')">Żółty</button>
+            <button class="black" onclick="changeBackground('#000000')">Czarny</button>
+            <button class="white" onclick="changeBackground('#FFFFFF')">Biały</button>
+            <button class="green" onclick="changeBackground('#00FF00')">Zielony</button>
+            <button class="blue" onclick="changeBackground('#0000FF')">Niebieski</button>
+            <button class="orange" onclick="changeBackground('#FF8800')">Pomarańczowy</button>
+            <button class="gray" onclick="changeBackground('#C0C0C0')">Szary</button>
+            <button class="red" onclick="changeBackground('#FF0000')">Czerwony</button>
+        </div>
+    </main>
+
+    <script>
+        function changeBackground(hexNumber) {
+            document.body.style.backgroundColor = hexNumber;
+        }
+    </script>
+
+    <script src="/js/timedate.js" type="text/javascript"></script>
+    <script src="/js/kolortlo.js" type="text/javascript"></script>
+    <script>
+        function prepareMailto(form) {
+            const name = encodeURIComponent(form.name.value);
+            const email = encodeURIComponent(form.email.value);
+            const message = encodeURIComponent(form.message.value);
+            const subject = encodeURIComponent("Wiadomość z formularza kontaktowego");
+
+            const mailtoLink = `mailto:twojemail@example.com?subject=${subject}&body=Imię: ${name}%0AEmail: ${email}%0AWiadomość: ${message}`;
+            
+            window.location.href = mailtoLink;
+            return false; 
+        }
+    </script>
+</body>
+</html>
