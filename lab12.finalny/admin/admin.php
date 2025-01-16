@@ -1,0 +1,414 @@
+<?php
+session_start();  // Rozpoczęcie sesji
+include('../cfg.php');  // Dołączenie konfiguracji z bazą danych
+
+// Obsługa formularza logowania
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['dodajKategorie']) && !isset($_POST['dodajProdukt'])) {
+    $login = $_POST['login'] ?? '';
+    $password = $_POST['password'] ?? '';
+
+    if ($login === 'root' && $password === 'haslo') {
+        $_SESSION['zalogowany'] = true;
+        header('Location: admin.php');  // Przekierowanie po zalogowaniu
+        exit;
+    } else {
+        echo "<p style='color: red;'>Błędny login lub hasło!</p>";
+    }
+}
+
+// Sprawdzenie, czy użytkownik jest zalogowany
+if (!isset($_SESSION['zalogowany']) || $_SESSION['zalogowany'] !== true) {
+    echo "
+    <h2>Zaloguj się</h2>
+    <form method='post'>
+        <label>Login:</label>
+        <input type='text' name='login' required><br>
+        <label>Hasło:</label>
+        <input type='password' name='password' required><br>
+        <button type='submit'>Zaloguj się</button>
+    </form>";
+    exit;
+}
+
+// Panel administracyjny
+echo '<h1>Witaj w panelu administratora!</h1>';
+?>
+
+
+
+<form method="post">
+    <label>Nazwa kategorii:</label>
+    <input type="text" name="nazwa" required>
+    <label>ID kategorii nadrzędnej (0 dla głównej):</label>
+    <input type="number" name="matka" value="0">
+    <button type="submit" name="dodajKategorie">Dodaj kategorię</button>
+</form>
+
+<?php
+// Funkcja wyświetlania kategorii w formie drzewa z obsługą edycji i usuwania
+function pokazKategorie($link, $matka = 0, $poziom = 0) {
+    $sql = "SELECT * FROM kategorie WHERE matka = ? ORDER BY nazwa";
+    $stmt = $link->prepare($sql);
+    $stmt->bind_param('i', $matka);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if (!$result) {
+        echo "<p style='color:red;'>Błąd SQL: " . $link->error . "</p>";
+        return;
+    }
+
+    if ($result->num_rows > 0) {
+        echo "<ul>";
+        while ($row = $result->fetch_assoc()) {
+            echo "<li>" . str_repeat("--", $poziom) . htmlspecialchars($row['nazwa']) . " (ID: " . $row['id'] . ")";
+            echo " <a href='?edit_kategoria=" . $row['id'] . "'>Edytuj</a> | ";
+            echo "<a href='?delete_kategoria=" . $row['id'] . "' onclick='return confirm(\"Czy na pewno chcesz usunąć tę kategorię i jej podkategorie?\")'>Usuń</a>";
+            pokazKategorie($link, $row['id'], $poziom + 1);
+            echo "</li>";
+        }
+        echo "</ul>";
+    } else {
+        echo "<p>Brak kategorii na tym poziomie.</p>";
+    }
+}
+
+// Obsługa usuwania kategorii
+if (isset($_GET['delete_kategoria'])) {
+    $id = intval($_GET['delete_kategoria']);
+    $sqlDelete = "DELETE FROM kategorie WHERE id = ? OR matka = ?";
+    $stmtDelete = $link->prepare($sqlDelete);
+    $stmtDelete->bind_param('ii', $id, $id);
+    if ($stmtDelete->execute()) {
+        echo "<p style='color:green;'>Kategoria oraz jej podkategorie zostały usunięte!</p>";
+        header("Location: admin.php");
+        exit;
+    } else {
+        echo "<p style='color:red;'>Błąd: " . $link->error . "</p>";
+    }
+}
+
+// Wyświetlanie drzewa kategorii
+
+pokazKategorie($link);
+
+if (isset($_GET['edit_kategoria'])) {
+    $id = intval($_GET['edit_kategoria']);
+    $query = "SELECT * FROM kategorie WHERE id = ?";
+    $stmt = $link->prepare($query);
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    echo '<h2>Edytuj kategorię</h2>';
+    echo '<form method="post" action="">';
+    echo '<label>Nowa nazwa kategorii:</label>';
+    echo '<input type="text" name="nazwa" value="' . htmlspecialchars($row['nazwa']) . '" required>';
+    echo '<button type="submit" name="update_kategoria">Zapisz zmiany</button>';
+    echo '</form>';
+}
+
+if (isset($_POST['update_kategoria']) && isset($_GET['edit_kategoria'])) {
+    $id = intval($_GET['edit_kategoria']);
+    $nazwa = trim($_POST['nazwa']);
+
+    $query = "UPDATE kategorie SET nazwa = ? WHERE id = ?";
+    $stmt = $link->prepare($query);
+    $stmt->bind_param('si', $nazwa, $id);
+    if ($stmt->execute()) {
+        echo '<p style="color: green;">Kategoria została zaktualizowana!</p>';
+        header("Location: admin.php");
+        exit;
+    } else {
+        echo '<p style="color: red;">Błąd aktualizacji kategorii: ' . $link->error . '</p>';
+    }
+}
+
+
+
+
+// Dodawanie kategorii
+if (isset($_POST['dodajKategorie'])) {
+    $nazwa = trim($_POST['nazwa']);
+    $matka = (int)$_POST['matka'];
+
+    if (empty($nazwa)) {
+        echo "<p style='color:red;'>Nazwa kategorii nie może być pusta!</p>";
+    } else {
+        $sqlCheck = "SELECT * FROM kategorie WHERE nazwa = ? AND matka = ?";
+        $stmtCheck = $link->prepare($sqlCheck);
+        $stmtCheck->bind_param('si', $nazwa, $matka);
+        $stmtCheck->execute();
+        $resultCheck = $stmtCheck->get_result();
+
+        if ($resultCheck->num_rows > 0) {
+            echo "<p style='color:red;'>Kategoria o tej samej nazwie już istnieje na tym poziomie!</p>";
+        } else {
+            $sql = "INSERT INTO kategorie (matka, nazwa) VALUES (?, ?)";
+            $stmt = $link->prepare($sql);
+            $stmt->bind_param('is', $matka, $nazwa);
+            if ($stmt->execute()) {
+                echo "<p style='color:green;'>Kategoria została dodana!</p>";
+                header("Refresh:0");  // Odświeżanie strony, aby pokazać nowe dane
+                exit;
+            } else {
+                echo "<p style='color:red;'>Błąd: " . $link->error . "</p>";
+            }
+        }
+    }
+}
+
+// -----------------------------------------
+// Obsługa produktów
+// -----------------------------------------
+// Dodawanie produktu
+if (isset($_POST['dodajProdukt'])) {
+    $tytul = $_POST['tytul'];
+    $opis = $_POST['opis'];
+    $cena_netto = $_POST['cena_netto'];
+    $podatek_vat = $_POST['podatek_vat'];
+    $ilosc_sztuk = $_POST['ilosc_sztuk'];
+    $status = isset($_POST['status_dostepnosci']) ? 1 : 0;
+    $kategoria_id = $_POST['kategoria_id'];
+    $gabaryt = $_POST['gabaryt'];
+
+    // Obsługa uploadu zdjęcia
+    $zdjecie = null;
+    if (isset($_FILES['zdjecie']) && $_FILES['zdjecie']['error'] == UPLOAD_ERR_OK) {
+        $zdjecie = 'uploads/' . basename($_FILES['zdjecie']['name']);
+        move_uploaded_file($_FILES['zdjecie']['tmp_name'], $zdjecie);
+    }
+
+    $sql = "INSERT INTO produkty (tytul, opis, cena_netto, podatek_vat, ilosc_sztuk, status_dostepnosci, kategoria, gabaryt, zdjecie) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $link->prepare($sql);
+    $stmt->bind_param('ssddiisss', $tytul, $opis, $cena_netto, $podatek_vat, $ilosc_sztuk, $status, $kategoria_id, $gabaryt, $zdjecie);
+    if ($stmt->execute()) {
+        echo "<p style='color:green;'>Produkt został dodany!</p>";
+    } else {
+        echo "<p style='color:red;'>Błąd: " . $link->error . "</p>";
+    }
+}
+
+// Wyświetlanie produktów
+echo '<h2>Lista produktów</h2>';
+$query = "SELECT * FROM produkty";
+$result = $link->query($query);
+if ($result->num_rows > 0) {
+    echo '<table border="1">';
+    echo '<tr><th>ID</th><th>Tytuł</th><th>Cena netto</th><th>Ilość sztuk</th><th>Kategoria</th><th>Zdjęcie</th><th>Akcje</th></tr>';
+    while ($row = $result->fetch_assoc()) {
+        echo '<tr>';
+        echo '<td>' . $row['id'] . '</td>';
+        echo '<td>' . htmlspecialchars($row['tytul']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['cena_netto']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['ilosc_sztuk']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['kategoria']) . '</td>';
+        echo '<td>';
+        if (!empty($row['zdjecie'])) {
+            echo '<img src="' . htmlspecialchars($row['zdjecie']) . '" alt="Zdjecie" style="max-width:100px;">';
+        } else {
+            echo 'Brak zdjęcia';
+        }
+        echo '</td>';
+        echo '<td>';
+        echo '<a href="admin.php?edit_produkt=' . $row['id'] . '">Edytuj</a> | ';
+        echo '<a href="admin.php?delete_produkt=' . $row['id'] . '" onclick="return confirm(\'Czy na pewno chcesz usunąć ten produkt?\');">Usuń</a>';
+        echo '</td>';
+        echo '</tr>';
+    }
+    echo '</table>';
+} else {
+    echo '<p>Brak produktów w bazie.</p>';
+}
+
+if (isset($_GET['edit_produkt'])) {
+    $id = intval($_GET['edit_produkt']);
+    $query = "SELECT * FROM produkty WHERE id = ?";
+    $stmt = $link->prepare($query);
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    echo '<h2>Edytuj produkt</h2>';
+    echo '<form method="post" action="">';
+    echo '<label>Nazwa produktu:</label>';
+    echo '<input type="text" name="tytul" value="' . htmlspecialchars($row['tytul']) . '" required><br>';
+    echo '<label>Ilość sztuk na stanie:</label>';
+    echo '<input type="number" name="ilosc_sztuk" value="' . htmlspecialchars($row['ilosc_sztuk']) . '" required><br>';
+    echo '<label>Kategoria (ID):</label>';
+    echo '<input type="number" name="kategoria_id" value="' . htmlspecialchars($row['kategoria']) . '" required><br>';
+    echo '<button type="submit" name="update_produkt">Zapisz zmiany</button>';
+    echo '</form>';
+}
+
+if (isset($_POST['update_produkt']) && isset($_GET['edit_produkt'])) {
+    $id = intval($_GET['edit_produkt']);
+    $tytul = trim($_POST['tytul']);
+    $ilosc_sztuk = intval($_POST['ilosc_sztuk']);
+    $kategoria_id = intval($_POST['kategoria_id']);
+
+    $query = "UPDATE produkty SET tytul = ?, ilosc_sztuk = ?, kategoria = ? WHERE id = ?";
+    $stmt = $link->prepare($query);
+    $stmt->bind_param('siii', $tytul, $ilosc_sztuk, $kategoria_id, $id);
+    if ($stmt->execute()) {
+        echo '<p style="color: green;">Produkt został zaktualizowany!</p>';
+        header("Location: admin.php");
+        exit;
+    } else {
+        echo '<p style="color: red;">Błąd aktualizacji produktu: ' . $link->error . '</p>';
+    }
+}
+
+
+// Usuwanie produktu
+if (isset($_GET['delete_produkt'])) {
+    $id = intval($_GET['delete_produkt']);
+    $sql = "DELETE FROM produkty WHERE id = ?";
+    $stmt = $link->prepare($sql);
+    $stmt->bind_param('i', $id);
+    if ($stmt->execute()) {
+        echo "<p style='color:green;'>Produkt został usunięty!</p>";
+    } else {
+        echo "<p style='color:red;'>Błąd: " . $link->error . "</p>";
+    }
+}
+
+
+ // Formularz dodawania produktu
+echo '<h2>Dodaj produkt</h2>';
+echo '<form method="post" enctype="multipart/form-data">';
+echo '<label>Tytuł produktu:</label>';
+echo '<input type="text" name="tytul" required><br>';
+echo '<label>Opis produktu:</label>';
+echo '<textarea name="opis"></textarea><br>';
+echo '<label>Cena netto:</label>';
+echo '<input type="number" name="cena_netto" step="0.01" required><br>';
+echo '<label>VAT (%):</label>';
+echo '<input type="number" name="podatek_vat" step="0.01" required><br>';
+echo '<label>Ilość sztuk:</label>';
+echo '<input type="number" name="ilosc_sztuk" required><br>';
+echo '<label>Status dostępności:</label>';
+echo '<input type="checkbox" name="status_dostepnosci"><br>';
+echo '<label>ID kategorii:</label>';
+echo '<input type="number" name="kategoria_id"><br>';
+echo '<label>Gabaryt (mały/średni/duży):</label>';
+echo '<input type="text" name="gabaryt"><br>';
+echo '<label>Zdjęcie:</label>';
+echo '<input type="file" name="zdjecie" accept="image/*"><br>';
+echo '<button type="submit" name="dodajProdukt">Dodaj produkt</button>';
+echo '</form>';
+?>
+
+<!-- Lista podstron (istniejące funkcjonalności) -->
+<!-- Lista podstron -->
+<?php
+function ListaPodstron($link) {
+    echo '<h2>Lista podstron</h2>';
+    echo '<a href="admin.php?add=true" style="margin-bottom: 10px; display: inline-block;">Dodaj nową podstronę</a>'; // Link do formularza dodawania podstrony
+    $query = "SELECT id, page_title FROM page_list_";
+    $result = $link->query($query);
+    echo '<table border="1">';
+    echo '<tr><th>ID</th><th>Tytuł</th><th>Akcje</th></tr>';
+    while ($row = $result->fetch_assoc()) {
+        echo '<tr>';
+        echo '<td>' . $row['id'] . '</td>';
+        echo '<td>' . htmlspecialchars($row['page_title']) . '</td>';
+        echo '<td>';
+        echo '<a href="admin.php?edit_id=' . $row['id'] . '">Edytuj</a> | ';
+        echo '<a href="admin.php?delete_id=' . $row['id'] . '" onclick="return confirm(\'Czy na pewno chcesz usunąć tę podstronę?\');">Usuń</a>';
+        echo '</td>';
+        echo '</tr>';
+    }
+    echo '</table>';
+}
+
+if (isset($_GET['edit_id'])) {
+    EdytujPodstrone($link, intval($_GET['edit_id']));
+} elseif (isset($_GET['delete_id'])) {
+    UsunPodstrone($link, intval($_GET['delete_id']));
+} elseif (isset($_GET['add'])) {
+    DodajNowaPodstrone($link);
+} else {
+    ListaPodstron($link);
+    echo '<br><a href="logout.php">Wyloguj się</a>';
+}
+
+// Funkcje CRUD dla podstron
+function EdytujPodstrone($link, $id) {
+    $query = "SELECT * FROM page_list_ WHERE id = ? LIMIT 1";
+    $stmt = $link->prepare($query);
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    echo '<h2>Edytuj podstronę</h2>';
+    echo '<form method="post" action="admin.php?edit_id=' . $id . '">';
+    echo '<label>Tytuł:</label>';
+    echo '<input type="text" name="page_title" value="' . htmlspecialchars($row['page_title']) . '" required><br>';
+    echo '<label>Treść:</label>';
+    echo '<textarea name="page_content" rows="10">' . htmlspecialchars($row['page_content']) . '</textarea><br>';
+    echo '<label>Aktywna:</label>';
+    echo '<input type="checkbox" name="status" ' . ($row['status'] == 1 ? 'checked' : '') . '><br>';
+    echo '<input type="submit" name="update_page" value="Zapisz zmiany">';
+    echo '</form>';
+
+    if (isset($_POST['update_page'])) {
+        $title = htmlspecialchars($_POST['page_title']);
+        $content = htmlspecialchars($_POST['page_content']);
+        $status = isset($_POST['status']) ? 1 : 0;
+
+        $update_query = "UPDATE page_list_ SET page_title = ?, page_content = ?, status = ? WHERE id = ?";
+        $update_stmt = $link->prepare($update_query);
+        $update_stmt->bind_param('ssii', $title, $content, $status, $id);
+        $update_stmt->execute();
+
+        header('Location: admin.php');
+        exit;
+    }
+}
+
+function DodajNowaPodstrone($link) {
+    echo '<h2>Dodaj nową podstronę</h2>';
+    echo '<form method="post" action="admin.php?add=true">';
+    echo '<label>Tytuł:</label>';
+    echo '<input type="text" name="page_title" required><br>';
+    echo '<label>Treść:</label>';
+    echo '<textarea name="page_content" rows="10"></textarea><br>';
+    echo '<label>Aktywna:</label>';
+    echo '<input type="checkbox" name="status"><br>';
+    echo '<input type="submit" name="add_page" value="Dodaj podstronę">';
+    echo '</form>';
+
+    if (isset($_POST['add_page'])) {
+        $title = htmlspecialchars($_POST['page_title']);
+        $content = htmlspecialchars($_POST['page_content']);
+        $status = isset($_POST['status']) ? 1 : 0;
+
+        $insert_query = "INSERT INTO page_list_ (page_title, page_content, status) VALUES (?, ?, ?)";
+        $stmt = $link->prepare($insert_query);
+        $stmt->bind_param('ssi', $title, $content, $status);
+        $stmt->execute();
+
+        header('Location: admin.php');
+        exit;
+    }
+}
+
+function UsunPodstrone($link, $id) {
+    $delete_query = "DELETE FROM page_list_ WHERE id = ?";
+    $stmt = $link->prepare($delete_query);
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+
+    header('Location: admin.php');
+    exit;
+}
+
+?>
+
+<hr>
+<a href="logout.php">Wyloguj się</a>
